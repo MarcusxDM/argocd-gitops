@@ -1,0 +1,27 @@
+apiVersion: mysql.oracle.com/v2
+kind: InnoDBCluster
+metadata:
+  name: mysql-prod
+  namespace: sistema-matricula-prod
+spec:
+  secretName: mysql-prod-secret
+  tlsUseSelfSigned: true
+  instances: 3
+  router:
+    instances: 2
+  datadirVolumeClaimTemplate:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 20Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-prod-secret
+  namespace: sistema-matricula-prod
+type: Opaque
+stringData:
+  rootPassword: prod_root_password_456
+  rootUser: root

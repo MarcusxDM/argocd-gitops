@@ -1,0 +1,27 @@
+apiVersion: mysql.oracle.com/v2
+kind: InnoDBCluster
+metadata:
+  name: mysql-dev
+  namespace: sistema-matricula-dev
+spec:
+  secretName: mysql-dev-secret
+  tlsUseSelfSigned: true
+  instances: 1
+  router:
+    instances: 1
+  datadirVolumeClaimTemplate:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-dev-secret
+  namespace: sistema-matricula-dev
+type: Opaque
+stringData:
+  rootPassword: dev_root_password_123
+  rootUser: root
