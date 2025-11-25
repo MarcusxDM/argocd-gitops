@@ -1,0 +1,67 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: sistema-matricula-dev
+  namespace: sistema-matricula-dev
+spec:
+  replicas: 2
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: sistema-matricula
+      env: dev
+  template:
+    metadata:
+      labels:
+        app: sistema-matricula
+        env: dev
+    spec:
+      containers:
+      - name: django-app
+        image: ghcr.io/marcusxdm/sistema-matricula-ifal-django:develop-latest
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        env:
+        - name: ENVIRONMENT
+          value: "dev"
+        - name: MYSQL_HOST
+          value: "mysql"
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: sistema-matricula-dev-db-secret
+              key: MYSQL_DATABASE
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: sistema-matricula-dev-db-secret
+              key: MYSQL_USER
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sistema-matricula-dev-db-secret
+              key: MYSQL_PASSWORD
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+  strategy:
+    blueGreen:
+      # Service que recebe tráfego de produção
+      activeService: sistema-matricula-active
+      # Service para preview/teste da nova versão
+      previewService: sistema-matricula-preview
+
+      autoPromotionEnabled: false
+      # Tempo para escalar down a versão antiga após promoção
+      scaleDownDelaySeconds: 30

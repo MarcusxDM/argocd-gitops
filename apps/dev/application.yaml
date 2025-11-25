@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sistema-matricula-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/MarcusxDM/argocd-gitops
+    targetRevision: main
+    path: dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sistema-matricula-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

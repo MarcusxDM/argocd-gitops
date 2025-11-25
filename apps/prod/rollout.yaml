@@ -1,0 +1,94 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: sistema-matricula-prod
+  namespace: sistema-matricula-prod
+spec:
+  replicas: 5
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: sistema-matricula
+      env: prod
+  template:
+    metadata:
+      labels:
+        app: sistema-matricula
+        env: prod
+    spec:
+      containers:
+      - name: django-app
+        image: ghcr.io/marcusxdm/sistema-matricula-ifal-django:prod-latest
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        env:
+        - name: ENVIRONMENT
+          value: "prod"
+        - name: MYSQL_HOST
+          value: "mysql"
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: sistema-matricula-prod-db-secret
+              key: MYSQL_DATABASE
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: sistema-matricula-prod-db-secret
+              key: MYSQL_USER
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sistema-matricula-prod-db-secret
+              key: MYSQL_PASSWORD
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+  strategy:
+    canary:
+      # Services canary
+      canaryService: sistema-matricula-canary
+      stableService: sistema-matricula-stable
+      
+      # Etapas canary deployment
+      steps:
+      # 1- Enviar 20% do tráfego p canary
+      - setWeight: 20
+      - pause: {duration: 2m}
+      
+      # 2- Aumentar para 40%
+      - setWeight: 40
+      - pause: {duration: 2m}
+      
+      # 3- Aumentar para 60%
+      - setWeight: 60
+      - pause: {duration: 2m}
+      
+      #  4- Aumentar para 80%
+      - setWeight: 80
+      - pause: {duration: 1m}
+      
+      #  5- Pausa manual p validação final
+      - pause: {}
+      
+      # trafficRouting:
+      #   nginx:
+      #     stableIngress: sistema-matricula-ingress
