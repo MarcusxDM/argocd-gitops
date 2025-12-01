@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: django-app
-        image: ghcr.io/marcusxdm/sistema-matricula-ifal-django:prod-latest
+        image: ghcr.io/marcusxdm/sistema-matricula-ifal-django:main-e6b8de2
         ports:
         - name: http
           containerPort: 8000
