@@ -17,7 +17,7 @@ spec:
         - values-prod.yaml
       parameters:
         - name: image.tag
-          value: main-latest
+          value: main-1f0011c
   destination:
     server: https://kubernetes.default.svc
     namespace: sistema-matricula-prod
